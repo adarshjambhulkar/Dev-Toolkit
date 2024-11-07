@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>AES-CBC Encryption/Decryption</title>
+    <title>AES Encryption/Decryption Compatible with C#</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <style>
@@ -47,7 +47,7 @@
 
 <body>
     <div class="container mt-5">
-        <h2 class="text-center">AES-CBC 256 Encryption and Decryption</h2>
+        <h2 class="text-center">AES Encryption and Decryption Compatible with C#</h2>
         <div class="text-right mb-3">
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="themeToggleSwitch">
@@ -149,19 +149,6 @@
             localStorage.setItem('secretKey', secret);
         }
 
-        // Adjust key length to 16 bytes
-        function adjustKeyLength(keyData) {
-            if (keyData.length > 16) {
-                return keyData.slice(0, 16);
-            } else if (keyData.length < 16) {
-                const paddedKey = new Uint8Array(16);
-                paddedKey.set(keyData);
-                return paddedKey;
-            } else {
-                return keyData;
-            }
-        }
-
         // Encrypt function
         async function encryptData() {
             const secret = document.getElementById('encryptSecret').value;
@@ -178,8 +165,7 @@
             try {
                 const encoder = new TextEncoder();
                 const byteData = encoder.encode(plainText);
-                const keyDataRaw = encoder.encode(secret);
-                const keyData = adjustKeyLength(keyDataRaw);
+                const keyData = encoder.encode(secret);
 
                 // Import the key
                 const key = await window.crypto.subtle.importKey(
@@ -231,8 +217,7 @@
             try {
                 const decoder = new TextDecoder();
                 const encoder = new TextEncoder();
-                const keyDataRaw = encoder.encode(secret);
-                const keyData = adjustKeyLength(keyDataRaw);
+                const keyData = encoder.encode(secret);
 
                 // Decode Base64
                 const combinedData = Uint8Array.from(atob(cipherText), c => c.charCodeAt(0));
