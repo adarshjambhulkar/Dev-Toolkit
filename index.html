@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AES-CBC Encryption/Decryption</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <style>
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ffffff;
+        }
+
+        .dark-mode .form-control {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border-color: #444444;
+        }
+
+        .dark-mode .btn {
+            background-color: #333333;
+            color: #ffffff;
+            border-color: #555555;
+        }
+
+        .dark-mode .btn:hover {
+            background-color: #444444;
+        }
+
+        .dark-mode .custom-control-label::before {
+            background-color: #1e1e1e;
+            border-color: #444444;
+        }
+
+        .dark-mode .custom-control-input:checked~.custom-control-label::before {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+        .dark-mode .custom-control-label {
+            color: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <h2 class="text-center">AES-CBC 256 Encryption and Decryption</h2>
+        <div class="text-right mb-3">
+            <div class="custom-control custom-switch">
+                <input type="checkbox" class="custom-control-input" id="themeToggleSwitch">
+                <label class="custom-control-label" for="themeToggleSwitch" id="themeToggleLabel">Dark Mode</label>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <h4>Encrypt</h4>
+                <div class="form-group">
+                    <label for="encryptSecret">Secret Key:</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="encryptSecret" placeholder="Enter secret key">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button"
+                                id="encryptSecretToggle">Show</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="plainText">Plain Text:</label>
+                    <textarea class="form-control" id="plainText" rows="5"
+                        placeholder="Enter text to encrypt"></textarea>
+                </div>
+                <button class="btn btn-primary" id="encryptButton">Encrypt</button>
+                <div class="form-group mt-3">
+                    <label for="encryptedText">Encrypted Text (Base64):</label>
+                    <textarea class="form-control" id="encryptedText" rows="5" readonly></textarea>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4>Decrypt</h4>
+                <div class="form-group">
+                    <label for="decryptSecret">Secret Key:</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="decryptSecret" placeholder="Enter secret key">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button"
+                                id="decryptSecretToggle">Show</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cipherText">Encrypted Text (Base64):</label>
+                    <textarea class="form-control" id="cipherText" rows="5"
+                        placeholder="Enter text to decrypt"></textarea>
+                </div>
+                <button class="btn btn-primary" id="decryptButton">Decrypt</button>
+                <div class="form-group mt-3">
+                    <label for="decryptedText">Decrypted Text:</label>
+                    <textarea class="form-control" id="decryptedText" rows="5" readonly></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Code -->
+    <script>
+        // Dark Mode Toggle
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('themeToggleSwitch').checked = true;
+                document.getElementById('themeToggleLabel').innerText = 'Dark Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.getElementById('themeToggleSwitch').checked = false;
+                document.getElementById('themeToggleLabel').innerText = 'Light Mode';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        document.getElementById('themeToggleSwitch').addEventListener('change', () => {
+            if (document.getElementById('themeToggleSwitch').checked) {
+                setTheme('dark');
+            } else {
+                setTheme('light');
+            }
+        });
+
+        // Initialize theme on page load
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            setTheme(savedTheme);
+        })();
+
+        // Load secret key from localStorage
+        function loadSecretKey() {
+            const savedSecret = localStorage.getItem('secretKey');
+            if (savedSecret) {
+                document.getElementById('encryptSecret').value = savedSecret;
+                document.getElementById('decryptSecret').value = savedSecret;
+            }
+        }
+
+        // Save secret key to localStorage
+        function saveSecretKey(secret) {
+            localStorage.setItem('secretKey', secret);
+        }
+
+        // Adjust key length to 16 bytes
+        function adjustKeyLength(keyData) {
+            if (keyData.length > 16) {
+                return keyData.slice(0, 16);
+            } else if (keyData.length < 16) {
+                const paddedKey = new Uint8Array(16);
+                paddedKey.set(keyData);
+                return paddedKey;
+            } else {
+                return keyData;
+            }
+        }
+
+        // Encrypt function
+        async function encryptData() {
+            const secret = document.getElementById('encryptSecret').value;
+            const plainText = document.getElementById('plainText').value;
+
+            if (!secret || !plainText) {
+                alert('Please enter both secret key and plain text.');
+                return;
+            }
+
+            // Save secret key to localStorage
+            saveSecretKey(secret);
+
+            try {
+                const encoder = new TextEncoder();
+                const byteData = encoder.encode(plainText);
+                const keyDataRaw = encoder.encode(secret);
+                const keyData = adjustKeyLength(keyDataRaw);
+
+                // Import the key
+                const key = await window.crypto.subtle.importKey(
+                    'raw',
+                    keyData,
+                    { name: 'AES-CBC' },
+                    false,
+                    ['encrypt']
+                );
+
+                // Generate a random IV
+                const iv = window.crypto.getRandomValues(new Uint8Array(16));
+
+                // Encrypt the data
+                const encryptedData = await window.crypto.subtle.encrypt(
+                    { name: 'AES-CBC', iv: iv },
+                    key,
+                    byteData
+                );
+
+                // Combine the IV and encrypted data
+                const combinedData = new Uint8Array(iv.length + encryptedData.byteLength);
+                combinedData.set(iv);
+                combinedData.set(new Uint8Array(encryptedData), iv.length);
+
+                // Convert to Base64
+                const base64String = btoa(String.fromCharCode(...combinedData));
+
+                document.getElementById('encryptedText').value = base64String;
+            } catch (err) {
+                console.error('Encryption failed:', err);
+                alert('Encryption failed.');
+            }
+        }
+
+        // Decrypt function
+        async function decryptData() {
+            const secret = document.getElementById('decryptSecret').value;
+            const cipherText = document.getElementById('cipherText').value;
+
+            if (!secret || !cipherText) {
+                alert('Please enter both secret key and encrypted text.');
+                return;
+            }
+
+            // Save secret key to localStorage
+            saveSecretKey(secret);
+
+            try {
+                const decoder = new TextDecoder();
+                const encoder = new TextEncoder();
+                const keyDataRaw = encoder.encode(secret);
+                const keyData = adjustKeyLength(keyDataRaw);
+
+                // Decode Base64
+                const combinedData = Uint8Array.from(atob(cipherText), c => c.charCodeAt(0));
+
+                // Extract the IV
+                const iv = combinedData.slice(0, 16);
+
+                // Extract the encrypted data
+                const encryptedData = combinedData.slice(16);
+
+                // Import the key
+                const key = await window.crypto.subtle.importKey(
+                    'raw',
+                    keyData,
+                    { name: 'AES-CBC' },
+                    false,
+                    ['decrypt']
+                );
+
+                // Decrypt the data
+                const decryptedData = await window.crypto.subtle.decrypt(
+                    { name: 'AES-CBC', iv: iv },
+                    key,
+                    encryptedData
+                );
+
+                const decryptedText = decoder.decode(decryptedData);
+
+                document.getElementById('decryptedText').value = decryptedText;
+            } catch (err) {
+                console.error('Decryption failed:', err);
+                alert('Decryption failed. Check if the secret key and encrypted text are correct.');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('encryptButton').addEventListener('click', encryptData);
+        document.getElementById('decryptButton').addEventListener('click', decryptData);
+
+        // Load secret key on page load
+        loadSecretKey();
+
+        // Update secret key in localStorage when changed
+        function secretKeyInputHandler(event) {
+            saveSecretKey(event.target.value);
+            if (event.target.id === 'encryptSecret') {
+                document.getElementById('decryptSecret').value = event.target.value;
+            } else {
+                document.getElementById('encryptSecret').value = event.target.value;
+            }
+        }
+
+        document.getElementById('encryptSecret').addEventListener('input', secretKeyInputHandler);
+        document.getElementById('decryptSecret').addEventListener('input', secretKeyInputHandler);
+
+        // Show/Hide Secret Key Functionality
+        function toggleSecretVisibility(inputId, buttonId) {
+            const input = document.getElementById(inputId);
+            const button = document.getElementById(buttonId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.innerText = 'Hide';
+            } else {
+                input.type = 'password';
+                button.innerText = 'Show';
+            }
+        }
+
+        document.getElementById('encryptSecretToggle').addEventListener('click', () => {
+            toggleSecretVisibility('encryptSecret', 'encryptSecretToggle');
+        });
+
+        document.getElementById('decryptSecretToggle').addEventListener('click', () => {
+            toggleSecretVisibility('decryptSecret', 'decryptSecretToggle');
+        });
+    </script>
+</body>
+
+</html>
