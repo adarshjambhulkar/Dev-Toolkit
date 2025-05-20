@@ -6,8 +6,9 @@
     <title>AES-CBC Encryption/Decryption</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- JSON Viewer CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.json-viewer/json-viewer/jquery.json-viewer.css">
     <style>
-        /* Dark mode styles */
         body.dark-mode {
             background-color: #121212;
             color: #ffffff;
@@ -42,21 +43,72 @@
         .dark-mode .custom-control-label {
             color: #ffffff;
         }
+
+        .json-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            overflow-x: auto;
+        }
+
+        body.dark-mode .json-preview {
+            background-color: #1e1e1e;
+            border-color: #444;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container mt-5">
-        <h2 class="text-center">AES-CBC [256] Encryption and Decryption</h2>
-        <div class="text-right mb-3">
+    <div class="container-fluid mt-4">
+        <h2 class="text-center mb-4">AES-CBC [256] Encryption and Decryption</h2>
+        <div class="text-right mb-3 mr-4">
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="themeToggleSwitch">
                 <label class="custom-control-label" for="themeToggleSwitch" id="themeToggleLabel">Dark Mode</label>
             </div>
         </div>
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <h4>Encrypt</h4>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs" id="aesTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="decrypt-tab" data-toggle="tab" href="#decrypt" role="tab">Decrypt</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="encrypt-tab" data-toggle="tab" href="#encrypt" role="tab">Encrypt</a>
+            </li>
+        </ul>
+
+        <!-- Tab Contents -->
+        <div class="tab-content p-4">
+            <!-- Decrypt Tab -->
+            <div class="tab-pane fade show active" id="decrypt" role="tabpanel">
+                <div class="form-group">
+                    <label for="decryptSecret">Secret Key:</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="decryptSecret" placeholder="Enter secret key">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button"
+                                id="decryptSecretToggle">Show</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="cipherText">Encrypted Text (Base64):</label>
+                    <textarea class="form-control" id="cipherText" rows="5"
+                        placeholder="Enter text to decrypt"></textarea>
+                </div>
+                <button class="btn btn-primary" id="decryptButton">Decrypt</button>
+                <div class="form-group mt-3">
+                    <label for="decryptedText">Decrypted Text:</label>
+                    <textarea class="form-control" id="decryptedText" rows="5" readonly></textarea>
+                </div>
+                <div id="jsonViewer" class="json-preview"></div>
+            </div>
+
+            <!-- Encrypt Tab -->
+            <div class="tab-pane fade" id="encrypt" role="tabpanel">
                 <div class="form-group">
                     <label for="encryptSecret">Secret Key:</label>
                     <div class="input-group">
@@ -78,205 +130,62 @@
                     <textarea class="form-control" id="encryptedText" rows="5" readonly></textarea>
                 </div>
             </div>
-            <div class="col-md-6">
-                <h4>Decrypt</h4>
-                <div class="form-group">
-                    <label for="decryptSecret">Secret Key:</label>
-                    <div class="input-group">
-                        <input type="password" class="form-control" id="decryptSecret" placeholder="Enter secret key">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button"
-                                id="decryptSecretToggle">Show</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="cipherText">Encrypted Text (Base64):</label>
-                    <textarea class="form-control" id="cipherText" rows="5"
-                        placeholder="Enter text to decrypt"></textarea>
-                </div>
-                <button class="btn btn-primary" id="decryptButton">Decrypt</button>
-                <div class="form-group mt-3">
-                    <label for="decryptedText">Decrypted Text:</label>
-                    <textarea class="form-control" id="decryptedText" rows="5" readonly></textarea>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- JavaScript Code -->
+    <!-- jQuery + Bootstrap + JSON Viewer -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer/json-viewer/jquery.json-viewer.js"></script>
+
     <script>
-        // Dark Mode Toggle
+        // Theme Toggle
         function setTheme(theme) {
             if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
-                document.getElementById('themeToggleSwitch').checked = true;
-                document.getElementById('themeToggleLabel').innerText = 'Dark Mode';
+                $('#themeToggleSwitch').prop('checked', true);
+                $('#themeToggleLabel').text('Dark Mode');
                 localStorage.setItem('theme', 'dark');
             } else {
                 document.body.classList.remove('dark-mode');
-                document.getElementById('themeToggleSwitch').checked = false;
-                document.getElementById('themeToggleLabel').innerText = 'Light Mode';
+                $('#themeToggleSwitch').prop('checked', false);
+                $('#themeToggleLabel').text('Light Mode');
                 localStorage.setItem('theme', 'light');
             }
         }
 
-        document.getElementById('themeToggleSwitch').addEventListener('change', () => {
-            if (document.getElementById('themeToggleSwitch').checked) {
-                setTheme('dark');
-            } else {
-                setTheme('light');
-            }
+        $('#themeToggleSwitch').on('change', function () {
+            setTheme(this.checked ? 'dark' : 'light');
         });
 
-        // Initialize theme on page load
         (function () {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            setTheme(savedTheme);
+            setTheme(localStorage.getItem('theme') || 'dark');
         })();
 
-        // Load secret key from localStorage
+        // Secret Key Persistence
         function loadSecretKey() {
             const savedSecret = localStorage.getItem('secretKey');
             if (savedSecret) {
-                document.getElementById('encryptSecret').value = savedSecret;
-                document.getElementById('decryptSecret').value = savedSecret;
+                $('#encryptSecret').val(savedSecret);
+                $('#decryptSecret').val(savedSecret);
             }
         }
 
-        // Save secret key to localStorage
         function saveSecretKey(secret) {
             localStorage.setItem('secretKey', secret);
         }
 
-        // Encrypt function
-        async function encryptData() {
-            const secret = document.getElementById('encryptSecret').value;
-            const plainText = document.getElementById('plainText').value;
-
-            if (!secret || !plainText) {
-                alert('Please enter both secret key and plain text.');
-                return;
-            }
-
-            // Save secret key to localStorage
-            saveSecretKey(secret);
-
-            try {
-                const encoder = new TextEncoder();
-                const byteData = encoder.encode(plainText);
-                const keyData = encoder.encode(secret);
-
-                // Import the key
-                const key = await window.crypto.subtle.importKey(
-                    'raw',
-                    keyData,
-                    { name: 'AES-CBC' },
-                    false,
-                    ['encrypt']
-                );
-
-                // Generate a random IV
-                const iv = window.crypto.getRandomValues(new Uint8Array(16));
-
-                // Encrypt the data
-                const encryptedData = await window.crypto.subtle.encrypt(
-                    { name: 'AES-CBC', iv: iv },
-                    key,
-                    byteData
-                );
-
-                // Combine the IV and encrypted data
-                const combinedData = new Uint8Array(iv.length + encryptedData.byteLength);
-                combinedData.set(iv);
-                combinedData.set(new Uint8Array(encryptedData), iv.length);
-
-                // Convert to Base64
-                const base64String = btoa(String.fromCharCode(...combinedData));
-
-                document.getElementById('encryptedText').value = base64String;
-            } catch (err) {
-                console.error('Encryption failed:', err);
-                alert('Encryption failed.');
-            }
+        function syncSecrets(e) {
+            saveSecretKey(e.target.value);
+            $('#encryptSecret, #decryptSecret').val(e.target.value);
         }
 
-        // Decrypt function
-        async function decryptData() {
-            const secret = document.getElementById('decryptSecret').value;
-            const cipherText = document.getElementById('cipherText').value;
+        $('#encryptSecret, #decryptSecret').on('input', syncSecrets);
 
-            if (!secret || !cipherText) {
-                alert('Please enter both secret key and encrypted text.');
-                return;
-            }
-
-            // Save secret key to localStorage
-            saveSecretKey(secret);
-
-            try {
-                const decoder = new TextDecoder();
-                const encoder = new TextEncoder();
-                const keyData = encoder.encode(secret);
-
-                // Decode Base64
-                const combinedData = Uint8Array.from(atob(cipherText), c => c.charCodeAt(0));
-
-                // Extract the IV
-                const iv = combinedData.slice(0, 16);
-
-                // Extract the encrypted data
-                const encryptedData = combinedData.slice(16);
-
-                // Import the key
-                const key = await window.crypto.subtle.importKey(
-                    'raw',
-                    keyData,
-                    { name: 'AES-CBC' },
-                    false,
-                    ['decrypt']
-                );
-
-                // Decrypt the data
-                const decryptedData = await window.crypto.subtle.decrypt(
-                    { name: 'AES-CBC', iv: iv },
-                    key,
-                    encryptedData
-                );
-
-                const decryptedText = decoder.decode(decryptedData);
-
-                document.getElementById('decryptedText').value = decryptedText;
-            } catch (err) {
-                console.error('Decryption failed:', err);
-                alert('Decryption failed. Check if the secret key and encrypted text are correct.');
-            }
-        }
-
-        // Event listeners
-        document.getElementById('encryptButton').addEventListener('click', encryptData);
-        document.getElementById('decryptButton').addEventListener('click', decryptData);
-
-        // Load secret key on page load
-        loadSecretKey();
-
-        // Update secret key in localStorage when changed
-        function secretKeyInputHandler(event) {
-            saveSecretKey(event.target.value);
-            if (event.target.id === 'encryptSecret') {
-                document.getElementById('decryptSecret').value = event.target.value;
-            } else {
-                document.getElementById('encryptSecret').value = event.target.value;
-            }
-        }
-
-        document.getElementById('encryptSecret').addEventListener('input', secretKeyInputHandler);
-        document.getElementById('decryptSecret').addEventListener('input', secretKeyInputHandler);
-
-        // Show/Hide Secret Key Functionality
-        function toggleSecretVisibility(inputId, buttonId) {
+        // Toggle password visibility
+        function toggleSecret(inputId, btnId) {
             const input = document.getElementById(inputId);
-            const button = document.getElementById(buttonId);
+            const button = document.getElementById(btnId);
             if (input.type === 'password') {
                 input.type = 'text';
                 button.innerText = 'Hide';
@@ -286,13 +195,79 @@
             }
         }
 
-        document.getElementById('encryptSecretToggle').addEventListener('click', () => {
-            toggleSecretVisibility('encryptSecret', 'encryptSecretToggle');
-        });
+        $('#encryptSecretToggle').on('click', () => toggleSecret('encryptSecret', 'encryptSecretToggle'));
+        $('#decryptSecretToggle').on('click', () => toggleSecret('decryptSecret', 'decryptSecretToggle'));
 
-        document.getElementById('decryptSecretToggle').addEventListener('click', () => {
-            toggleSecretVisibility('decryptSecret', 'decryptSecretToggle');
-        });
+        // Encrypt
+        async function encryptData() {
+            const secret = $('#encryptSecret').val();
+            const plainText = $('#plainText').val();
+
+            if (!secret || !plainText) {
+                alert('Please enter both secret key and plain text.');
+                return;
+            }
+
+            saveSecretKey(secret);
+
+            try {
+                const encoder = new TextEncoder();
+                const byteData = encoder.encode(plainText);
+                const keyData = encoder.encode(secret);
+                const key = await crypto.subtle.importKey('raw', keyData, { name: 'AES-CBC' }, false, ['encrypt']);
+                const iv = crypto.getRandomValues(new Uint8Array(16));
+                const encryptedData = await crypto.subtle.encrypt({ name: 'AES-CBC', iv }, key, byteData);
+                const combinedData = new Uint8Array(iv.length + encryptedData.byteLength);
+                combinedData.set(iv);
+                combinedData.set(new Uint8Array(encryptedData), iv.length);
+                const base64String = btoa(String.fromCharCode(...combinedData));
+                $('#encryptedText').val(base64String);
+            } catch (err) {
+                console.error('Encryption failed:', err);
+                alert('Encryption failed.');
+            }
+        }
+
+        // Decrypt
+        async function decryptData() {
+            const secret = $('#decryptSecret').val();
+            const cipherText = $('#cipherText').val();
+            $('#jsonViewer').empty();
+
+            if (!secret || !cipherText) {
+                alert('Please enter both secret key and encrypted text.');
+                return;
+            }
+
+            saveSecretKey(secret);
+
+            try {
+                const decoder = new TextDecoder();
+                const encoder = new TextEncoder();
+                const keyData = encoder.encode(secret);
+                const combinedData = Uint8Array.from(atob(cipherText), c => c.charCodeAt(0));
+                const iv = combinedData.slice(0, 16);
+                const encryptedData = combinedData.slice(16);
+                const key = await crypto.subtle.importKey('raw', keyData, { name: 'AES-CBC' }, false, ['decrypt']);
+                const decryptedData = await crypto.subtle.decrypt({ name: 'AES-CBC', iv }, key, encryptedData);
+                const decryptedText = decoder.decode(decryptedData);
+                $('#decryptedText').val(decryptedText);
+
+                try {
+                    const parsed = JSON.parse(decryptedText);
+                    $('#jsonViewer').jsonViewer(parsed, { collapsed: true });
+                } catch {
+                    // Not valid JSON — do nothing
+                }
+            } catch (err) {
+                console.error('Decryption failed:', err);
+                alert('Decryption failed. Check if the secret key and encrypted text are correct.');
+            }
+        }
+
+        $('#encryptButton').on('click', encryptData);
+        $('#decryptButton').on('click', decryptData);
+        loadSecretKey();
     </script>
 </body>
 
