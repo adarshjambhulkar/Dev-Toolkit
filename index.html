@@ -228,6 +228,13 @@
             }
         }
 
+        function removeOuterQuotes(str) {
+            if ((str.startsWith('"') && str.endsWith('"')) ||
+                (str.startsWith("'") && str.endsWith("'"))) {
+                return str.slice(1, -1);
+            }
+            return str;
+        }
         // Decrypt
         async function decryptData() {
             const secret = $('#decryptSecret').val();
@@ -245,7 +252,7 @@
                 const decoder = new TextDecoder();
                 const encoder = new TextEncoder();
                 const keyData = encoder.encode(secret);
-                const combinedData = Uint8Array.from(atob(cipherText), c => c.charCodeAt(0));
+                const combinedData = Uint8Array.from(atob(removeOuterQuotes(cipherText)), c => c.charCodeAt(0));
                 const iv = combinedData.slice(0, 16);
                 const encryptedData = combinedData.slice(16);
                 const key = await crypto.subtle.importKey('raw', keyData, { name: 'AES-CBC' }, false, ['decrypt']);
