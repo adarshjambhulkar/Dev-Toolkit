@@ -104,6 +104,10 @@
                     <label for="decryptedText">Decrypted Text:</label>
                     <textarea class="form-control" id="decryptedText" rows="5" readonly></textarea>
                 </div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="font-weight-bold">JSON Preview</span>
+                    <button class="btn btn-secondary btn-sm" id="toggleJsonCollapseBtn">Expand All</button>
+                </div>
                 <div id="jsonViewer" class="json-preview"></div>
             </div>
 
@@ -262,7 +266,9 @@
 
                 try {
                     const parsed = JSON.parse(decryptedText);
-                    $('#jsonViewer').jsonViewer(parsed, { collapsed: true });
+                    jsonCollapsedState = true; // Always default to collapsed on new render
+                    renderJsonViewer(parsed, jsonCollapsedState);
+                    $('#toggleJsonCollapseBtn').text('Expand All');
                 } catch {
                     // Not valid JSON — do nothing
                 }
@@ -271,6 +277,24 @@
                 alert('Decryption failed. Check if the secret key and encrypted text are correct.');
             }
         }
+
+        // JSON Viewer Toggle Logic
+        let jsonCollapsedState = true;
+        function renderJsonViewer(parsed, collapsed) {
+            $('#jsonViewer').jsonViewer(parsed, { collapsed });
+        }
+        $('#toggleJsonCollapseBtn').on('click', function () {
+            jsonCollapsedState = !jsonCollapsedState;
+            const decryptedText = $('#decryptedText').val();
+            if (!decryptedText) return;
+            try {
+                const parsed = JSON.parse(decryptedText);
+                renderJsonViewer(parsed, jsonCollapsedState);
+                $(this).text(jsonCollapsedState ? 'Expand All' : 'Collapse All');
+            } catch {
+                // Not valid JSON
+            }
+        });
 
         $('#encryptButton').on('click', encryptData);
         $('#decryptButton').on('click', decryptData);
