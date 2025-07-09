@@ -3,11 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>AES-CBC Encryption/Decryption</title>
+    <title>Dev Toolkit</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
     <!-- JSON Viewer CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.json-viewer/json-viewer/jquery.json-viewer.css">
+    <!-- JSONDiffPatch formatter CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsondiffpatch/public/formatters-styles/html.css">
     <style>
         body.dark-mode {
             background-color: #121212;
@@ -72,12 +74,67 @@
             background: #1e1e1e;
             border-color: #444;
         }
+
+        /* Nav Tabs Dark Mode */
+        body.dark-mode .nav-tabs {
+            border-bottom: 1px solid #444;
+        }
+
+        body.dark-mode .nav-tabs .nav-link {
+            color: #cccccc;
+        }
+
+        body.dark-mode .nav-tabs .nav-link:hover {
+            color: #ffffff;
+        }
+
+        body.dark-mode .nav-tabs .nav-link.active {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            border-color: #444 #444 #1e1e1e;
+        }
+
+        /* JSONDiffPatch Dark Mode Overrides */
+        body.dark-mode .jsondiffpatch-delta,
+        body.dark-mode .jsondiffpatch-delta pre {
+            background-color: #1e1e1e !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .jsondiffpatch-added {
+            background: #004d40 !important;
+            color: #b9f6ca !important;
+        }
+
+        body.dark-mode .jsondiffpatch-removed {
+            background: #6a1b1a !important;
+            color: #ff8a80 !important;
+        }
+
+        body.dark-mode .jsondiffpatch-modified {
+            background: #283593 !important;
+            color: #8c9eff !important;
+        }
+
+        body.dark-mode .jsondiffpatch-property-name {
+            color: #80d8ff !important;
+        }
+
+        /* Footer */
+        footer {
+            color: #6c757d;
+        }
+
+        body.dark-mode footer {
+            color: #aaaaaa;
+        }
     </style>
 </head>
 
 <body>
     <div class="container mt-4 mb-4">
-        <h2 class="text-center mb-4">AES-CBC [256] Encryption and Decryption</h2>
+        <h2 class="text-center mb-2">Dev Toolkit</h2>
+        <h5 class="text-center text-muted mb-4">AES-CBC 256 Encryption & Decryption • JSON Formatter • JSON Compare</h5>
         <div class="text-right mb-3 mr-4">
             <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="themeToggleSwitch">
@@ -92,6 +149,12 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" id="encrypt-tab" data-toggle="tab" href="#encrypt" role="tab">Encrypt</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="formatter-tab" data-toggle="tab" href="#formatter" role="tab">JSON Formatter</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="compare-tab" data-toggle="tab" href="#compare" role="tab">Compare JSON</a>
             </li>
         </ul>
 
@@ -121,7 +184,10 @@
                 </div>
                 <div class="d-flex justify-content-between align-items-center mb-2 json-sticky-header">
                     <span class="font-weight-bold">JSON Preview</span>
-                    <button class="btn btn-secondary btn-sm" id="toggleJsonCollapseBtn">Expand All</button>
+                    <div>
+                        <button class="btn btn-secondary btn-sm d-none" id="copyDecryptedBtn">Copy</button>
+                        <button class="btn btn-secondary btn-sm" id="toggleJsonCollapseBtn">Expand All</button>
+                    </div>
                 </div>
                 <div id="jsonViewer" class="json-preview"></div>
             </div>
@@ -149,6 +215,51 @@
                     <textarea class="form-control" id="encryptedText" rows="5" readonly></textarea>
                 </div>
             </div>
+
+            <!-- JSON Formatter Tab -->
+            <div class="tab-pane fade" id="formatter" role="tabpanel">
+                <div class="form-group">
+                    <label for="jsonInput">JSON Input:</label>
+                    <textarea class="form-control" id="jsonInput" rows="5" placeholder="Paste JSON here"></textarea>
+                </div>
+                <button class="btn btn-primary" id="formatJsonButton">Format</button>
+                <button class="btn btn-secondary" id="stringifyJsonCopyButton">Stringify</button>
+                <div class="d-flex justify-content-between align-items-center mb-2 json-sticky-header mt-3">
+                    <span class="font-weight-bold" id="jsonFormatterHeader">JSON Preview</span>
+                    <div>
+                        <button class="btn btn-secondary btn-sm d-none" id="copyFormattedBtn">Copy</button>
+                        <button class="btn btn-secondary btn-sm d-none" id="copyStringifiedBtn">Copy</button>
+                        <button class="btn btn-secondary btn-sm" id="toggleJsonFormatterCollapseBtn">Expand All</button>
+                    </div>
+                </div>
+                <div id="jsonFormatterViewer" class="json-preview"></div>
+            </div>
+
+            <!-- Compare JSON Tab -->
+            <div class="tab-pane fade" id="compare" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="jsonA">JSON A:</label>
+                            <textarea class="form-control" id="jsonA" rows="10"
+                                placeholder="Paste first JSON here"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="jsonB">JSON B:</label>
+                            <textarea class="form-control" id="jsonB" rows="10"
+                                placeholder="Paste second JSON here"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="compareJsonBtn">Compare</button>
+                <div class="d-flex justify-content-between align-items-center mb-2 json-sticky-header mt-3">
+                    <span class="font-weight-bold">Diff Result</span>
+                    <button class="btn btn-secondary btn-sm d-none" id="copyDiffBtn">Copy Diff JSON</button>
+                </div>
+                <div id="diffOutput" class="json-preview"></div>
+            </div>
         </div>
     </div>
 
@@ -156,6 +267,8 @@
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer/json-viewer/jquery.json-viewer.js"></script>
+    <!-- JSONDiffPatch library -->
+    <script src="https://cdn.jsdelivr.net/npm/jsondiffpatch/dist/jsondiffpatch.umd.js"></script>
 
     <script>
         // Theme Toggle
@@ -223,7 +336,7 @@
             const plainText = $('#plainText').val();
 
             if (!secret || !plainText) {
-                alert('Please enter both secret key and plain text.');
+                showToast('Please enter both secret key and plain text.', 'warning');
                 return;
             }
 
@@ -243,7 +356,7 @@
                 $('#encryptedText').val(base64String);
             } catch (err) {
                 console.error('Encryption failed:', err);
-                alert('Encryption failed.');
+                showToast('Encryption failed.', 'danger');
             }
         }
 
@@ -261,7 +374,7 @@
             $('#jsonViewer').empty();
 
             if (!secret || !cipherText) {
-                alert('Please enter both secret key and encrypted text.');
+                showToast('Please enter both secret key and encrypted text.', 'warning');
                 return;
             }
 
@@ -281,20 +394,22 @@
 
                 try {
                     const parsed = JSON.parse(decryptedText);
-                    jsonCollapsedState = true; // Always default to collapsed on new render
+                    jsonCollapsedState = false; // Default to expanded on new render
+                    lastDecryptedParsed = parsed;
                     renderJsonViewer(parsed, jsonCollapsedState);
-                    $('#toggleJsonCollapseBtn').text('Expand All');
+                    $('#toggleJsonCollapseBtn').text('Collapse All');
+                    $('#copyDecryptedBtn').removeClass('d-none');
                 } catch {
                     // Not valid JSON — do nothing
                 }
             } catch (err) {
                 console.error('Decryption failed:', err);
-                alert('Decryption failed. Check if the secret key and encrypted text are correct.');
+                showToast('Decryption failed. Check if the secret key and encrypted text are correct.', 'danger');
             }
         }
 
         // JSON Viewer Toggle Logic
-        let jsonCollapsedState = true;
+        let jsonCollapsedState = false;
         function renderJsonViewer(parsed, collapsed) {
             $('#jsonViewer').jsonViewer(parsed, { collapsed });
         }
@@ -305,7 +420,8 @@
             try {
                 const parsed = JSON.parse(decryptedText);
                 renderJsonViewer(parsed, jsonCollapsedState);
-                $(this).text(jsonCollapsedState ? 'Expand All' : 'Collapse All');
+                $(this).text(jsonCollapsedState ? 'Collapse All' : 'Expand All');
+                $('#copyDecryptedBtn').addClass('d-none');
             } catch {
                 // Not valid JSON
             }
@@ -314,7 +430,203 @@
         $('#encryptButton').on('click', encryptData);
         $('#decryptButton').on('click', decryptData);
         loadSecretKey();
+
+        // JSON Formatter Logic
+        let formatterCollapsedState = false;
+        let lastStringified = '';
+
+        function renderFormatterViewer(parsed, collapsed) {
+            $('#jsonFormatterViewer').jsonViewer(parsed, { collapsed });
+        }
+
+        function formatJson() {
+            const rawJson = $('#jsonInput').val().trim();
+            $('#jsonFormatterViewer').empty();
+            if (!rawJson) {
+                showToast('Please enter JSON.', 'warning');
+                return;
+            }
+            try {
+                const parsed = JSON.parse(rawJson);
+                formatterCollapsedState = false; // Default expanded
+                renderFormatterViewer(parsed, formatterCollapsedState);
+                $('#jsonFormatterHeader').text('JSON Preview');
+                $('#copyFormattedBtn').removeClass('d-none');
+                $('#copyStringifiedBtn').addClass('d-none');
+                $('#toggleJsonFormatterCollapseBtn').text('Collapse All').show();
+                lastStringified = '';
+            } catch (err) {
+                console.error('Invalid JSON:', err);
+                showToast('Invalid JSON.', 'danger');
+            }
+        }
+
+        function stringifyJsonCopy() {
+            const rawJson = $('#jsonInput').val().trim();
+            if (!rawJson) {
+                showToast('Please enter JSON.', 'warning');
+                return;
+            }
+            try {
+                const parsed = JSON.parse(rawJson);
+                const stringified = JSON.stringify(parsed); // minified JSON
+                // We want a JSON string literal (escaped + wrapped in quotes)
+                const jsonStringLiteral = JSON.stringify(stringified);
+
+                // Preview stringified JSON string literal
+                $('#jsonFormatterViewer').empty().text(jsonStringLiteral);
+                // Update header & buttons
+                $('#jsonFormatterHeader').text('Stringified JSON');
+                $('#copyFormattedBtn').addClass('d-none');
+                $('#copyStringifiedBtn').removeClass('d-none');
+                $('#toggleJsonFormatterCollapseBtn').hide();
+                // Store for copy
+                lastStringified = jsonStringLiteral;
+            } catch (err) {
+                console.error('Invalid JSON:', err);
+                showToast('Invalid JSON.', 'danger');
+            }
+        }
+
+        // Copy button handler
+        $('#copyStringifiedBtn').on('click', function () {
+            if (!lastStringified) return;
+            copyToClipboard(lastStringified);
+        });
+
+        // Copy button for formatted JSON in formatter tab
+        $('#copyFormattedBtn').on('click', function () {
+            const rawJson = $('#jsonInput').val().trim();
+            if (!rawJson) return;
+            try {
+                const parsed = JSON.parse(rawJson);
+                const pretty = JSON.stringify(parsed, null, 2);
+                copyToClipboard(pretty);
+            } catch { }
+        });
+
+        // Copy button for decrypted JSON preview
+        let lastDecryptedParsed = null;
+        $('#copyDecryptedBtn').on('click', function () {
+            if (!lastDecryptedParsed) return;
+            const pretty = JSON.stringify(lastDecryptedParsed, null, 2);
+            copyToClipboard(pretty);
+        });
+
+        function copyToClipboard(text) {
+            function fallbackCopy(str) {
+                const tempInput = $('<textarea>');
+                $('body').append(tempInput);
+                tempInput.val(str).select();
+                document.execCommand('copy');
+                tempInput.remove();
+            }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast('Copied to clipboard!', 'success');
+                }).catch(() => {
+                    fallbackCopy(text);
+                    showToast('Copied to clipboard!', 'success');
+                });
+            } else {
+                fallbackCopy(text);
+                showToast('Copied to clipboard!', 'success');
+            }
+        }
+
+        // Initialise toast component
+        $('.toast').toast({ autohide: true, delay: 2500 });
+
+        $('#formatJsonButton').on('click', formatJson);
+        $('#stringifyJsonCopyButton').on('click', stringifyJsonCopy);
+        $('#toggleJsonFormatterCollapseBtn').on('click', function () {
+            formatterCollapsedState = !formatterCollapsedState;
+            const rawJson = $('#jsonInput').val().trim();
+            if (!rawJson) return;
+            try {
+                const parsed = JSON.parse(rawJson);
+                renderFormatterViewer(parsed, formatterCollapsedState);
+                $(this).text(formatterCollapsedState ? 'Collapse All' : 'Expand All');
+            } catch {
+                // Invalid JSON, ignore
+            }
+        });
+
+        // TOAST helper
+        function showToast(message, type = 'success') {
+            const $toast = $('#appToast');
+            const $body = $toast.find('.toast-body');
+            $body.text(message);
+            // Reset bg classes
+            $body.removeClass('bg-success bg-danger bg-warning');
+            const colorClass = type === 'success' ? 'bg-success' : (type === 'danger' ? 'bg-danger' : 'bg-warning');
+            $body.addClass(colorClass);
+            $toast.toast('show');
+        }
+
+        /* ------------------ Compare JSON Logic ------------------ */
+        const diffpatch = jsondiffpatch.create();
+
+        function compareJson() {
+            const inputA = $('#jsonA').val().trim();
+            const inputB = $('#jsonB').val().trim();
+            $('#diffOutput').empty();
+            $('#copyDiffBtn').addClass('d-none');
+
+            if (!inputA || !inputB) {
+                showToast('Please enter both JSONs to compare.', 'warning');
+                return;
+            }
+
+            let jsonA, jsonB;
+            try {
+                jsonA = JSON.parse(inputA);
+            } catch {
+                showToast('JSON A is invalid.', 'danger');
+                return;
+            }
+            try {
+                jsonB = JSON.parse(inputB);
+            } catch {
+                showToast('JSON B is invalid.', 'danger');
+                return;
+            }
+
+            const delta = diffpatch.diff(jsonA, jsonB);
+            if (!delta) {
+                showToast('JSONs are identical.', 'success');
+                return;
+            }
+
+            const diffHtml = jsondiffpatch.formatters.html.format(delta, jsonA);
+            $('#diffOutput').html(diffHtml);
+            $('#copyDiffBtn').removeClass('d-none');
+
+            // Store for copy
+            lastDiffDelta = delta;
+        }
+
+        let lastDiffDelta = null;
+        $('#compareJsonBtn').on('click', compareJson);
+
+        $('#copyDiffBtn').on('click', function () {
+            if (!lastDiffDelta) return;
+            const diffString = JSON.stringify(lastDiffDelta, null, 2);
+            copyToClipboard(diffString);
+        });
     </script>
+
+    <!-- Toast notification -->
+    <div class="toast position-fixed" style="top: 1rem; right: 1rem; z-index: 1080;" id="appToast" data-delay="2500">
+        <div class="toast-body text-white bg-success">
+            Toast
+        </div>
+    </div>
+
+    <footer class="text-center mt-5 mb-3">
+        © 2025 Dev Toolkit. All rights reserved.
+    </footer>
 </body>
 
 </html>
