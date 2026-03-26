@@ -1,10 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { NavLink } from 'react-router-dom';
 import { Lock, LockOpen, Braces, GitCompare, FileJson, Binary, Layers, X, CaseSensitive, Code2 } from 'lucide-react';
 import type { ToolId } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
   id: ToolId;
+  path: string;
   label: string;
   icon: React.ElementType;
   description: string;
@@ -19,32 +21,31 @@ const NAV_CATEGORIES: NavCategory[] = [
   {
     title: 'Cryptography',
     items: [
-      { id: 'encrypt', label: 'Encrypt', icon: Lock, description: 'AES-CBC 256' },
-      { id: 'decrypt', label: 'Decrypt', icon: LockOpen, description: 'AES-CBC 256' },
-      { id: 'base64', label: 'Base64', icon: Binary, description: 'atob / btoa encode' },
+      { id: 'encrypt', path: '/encrypt', label: 'Encrypt', icon: Lock, description: 'AES-CBC 256' },
+      { id: 'decrypt', path: '/decrypt', label: 'Decrypt', icon: LockOpen, description: 'AES-CBC 256' },
+      { id: 'base64', path: '/base64', label: 'Base64', icon: Binary, description: 'atob / btoa encode' },
     ],
   },
   {
     title: 'JSON Tools',
     items: [
-      { id: 'formatter', label: 'Formatter', icon: Braces, description: 'Format & Stringify' },
-      { id: 'compare', label: 'Compare', icon: GitCompare, description: 'JSON Diff' },
-      { id: 'schema', label: 'Schema', icon: FileJson, description: 'JSON to Schema' },
-      { id: 'jsonserialize', label: 'Serialize', icon: Layers, description: 'Serialize & Deserialize' },
+      { id: 'formatter', path: '/formatter', label: 'Formatter', icon: Braces, description: 'Format & Stringify' },
+      { id: 'compare', path: '/compare', label: 'Compare', icon: GitCompare, description: 'JSON Diff' },
+      { id: 'schema', path: '/schema', label: 'Schema', icon: FileJson, description: 'JSON to Schema' },
+      { id: 'jsonserialize', path: '/jsonserialize', label: 'Serialize', icon: Layers, description: 'Serialize & Deserialize' },
     ],
   },
   {
     title: 'Text & Utilities',
     items: [
-      { id: 'charcounter', label: 'Char Counter', icon: CaseSensitive, description: 'Words, chars & more' },
-      { id: 'codetostring', label: 'Code → String', icon: Code2, description: 'Escape code to string' },
+      { id: 'charcounter', path: '/charcounter', label: 'Char Counter', icon: CaseSensitive, description: 'Words, chars & more' },
+      { id: 'codetostring', path: '/codetostring', label: 'Code → String', icon: Code2, description: 'Escape code to string' },
     ],
   },
 ];
 
 interface SidebarProps {
   activeTool: ToolId;
-  onToolChange: (id: ToolId) => void;
   /** Mobile only: whether the drawer is open */
   mobileOpen?: boolean;
   /** Mobile only: close the drawer */
@@ -53,18 +54,11 @@ interface SidebarProps {
 
 function SidebarContent({
   activeTool,
-  onToolChange,
   onMobileClose,
 }: {
   activeTool: ToolId;
-  onToolChange: (id: ToolId) => void;
   onMobileClose?: () => void;
 }) {
-  function handleSelect(id: ToolId) {
-    onToolChange(id);
-    onMobileClose?.();
-  }
-
   return (
     <div className="flex flex-col h-full bg-sidebar">
       {/* Brand */}
@@ -102,12 +96,13 @@ function SidebarContent({
               const isActive = activeTool === item.id;
 
               return (
-                <button
+                <NavLink
                   key={item.id}
-                  onClick={() => handleSelect(item.id)}
-                  className={cn(
+                  to={item.path}
+                  onClick={onMobileClose}
+                  className={({ isActive: linkActive }) => cn(
                     'relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-150',
-                    isActive
+                    linkActive
                       ? 'text-foreground'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
                   )}
@@ -124,23 +119,22 @@ function SidebarContent({
                     <p className="text-sm font-medium leading-none">{item.label}</p>
                     <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.description}</p>
                   </div>
-                </button>
+                </NavLink>
               );
             })}
           </div>
         ))}
       </nav>
-
     </div>
   );
 }
 
-export function Sidebar({ activeTool, onToolChange, mobileOpen = false, onMobileClose }: SidebarProps) {
+export function Sidebar({ activeTool, mobileOpen = false, onMobileClose }: SidebarProps) {
   return (
     <>
       {/* Desktop sidebar — always visible on md+ */}
       <aside className="hidden md:flex w-52 shrink-0 border-r flex-col h-full">
-        <SidebarContent activeTool={activeTool} onToolChange={onToolChange} />
+        <SidebarContent activeTool={activeTool} onMobileClose={onMobileClose} />
       </aside>
 
       {/* Mobile drawer */}
@@ -168,7 +162,6 @@ export function Sidebar({ activeTool, onToolChange, mobileOpen = false, onMobile
             >
               <SidebarContent
                 activeTool={activeTool}
-                onToolChange={onToolChange}
                 onMobileClose={onMobileClose}
               />
             </motion.aside>

@@ -5,6 +5,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
@@ -16,6 +17,7 @@ export default defineConfig({
     strictPort: true,
   },
   build: {
+    outDir: 'docs',
     rollupOptions: {
       output: {
         entryFileNames: '[name].js',
