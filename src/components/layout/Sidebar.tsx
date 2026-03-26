@@ -1,8 +1,19 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { NavLink } from 'react-router-dom';
-import { Lock, LockOpen, Braces, GitCompare, FileJson, Binary, Layers, X, CaseSensitive, Code2 } from 'lucide-react';
-import type { ToolId } from '@/types';
-import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from "framer-motion";
+import { NavLink } from "react-router-dom";
+import {
+  Lock,
+  LockOpen,
+  Braces,
+  GitCompare,
+  FileJson,
+  Binary,
+  Layers,
+  X,
+  CaseSensitive,
+  Code2,
+} from "lucide-react";
+import type { ToolId } from "@/types";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   id: ToolId;
@@ -19,27 +30,81 @@ interface NavCategory {
 
 const NAV_CATEGORIES: NavCategory[] = [
   {
-    title: 'Cryptography',
+    title: "Cryptography",
     items: [
-      { id: 'encrypt', path: '/encrypt', label: 'Encrypt', icon: Lock, description: 'AES-CBC 256' },
-      { id: 'decrypt', path: '/decrypt', label: 'Decrypt', icon: LockOpen, description: 'AES-CBC 256' },
-      { id: 'base64', path: '/base64', label: 'Base64', icon: Binary, description: 'atob / btoa encode' },
+      {
+        id: "encrypt",
+        path: "/encrypt",
+        label: "Encrypt",
+        icon: Lock,
+        description: "AES-CBC 256",
+      },
+      {
+        id: "decrypt",
+        path: "/decrypt",
+        label: "Decrypt",
+        icon: LockOpen,
+        description: "AES-CBC 256",
+      },
+      {
+        id: "base64",
+        path: "/base64",
+        label: "Base64",
+        icon: Binary,
+        description: "atob / btoa encode",
+      },
     ],
   },
   {
-    title: 'JSON Tools',
+    title: "JSON Tools",
     items: [
-      { id: 'formatter', path: '/formatter', label: 'Formatter', icon: Braces, description: 'Format & Stringify' },
-      { id: 'compare', path: '/compare', label: 'Compare', icon: GitCompare, description: 'JSON Diff' },
-      { id: 'schema', path: '/schema', label: 'Schema', icon: FileJson, description: 'JSON to Schema' },
-      { id: 'jsonserialize', path: '/jsonserialize', label: 'Serialize', icon: Layers, description: 'Serialize & Deserialize' },
+      {
+        id: "formatter",
+        path: "/formatter",
+        label: "Formatter",
+        icon: Braces,
+        description: "Format & Stringify",
+      },
+      {
+        id: "compare",
+        path: "/compare",
+        label: "Compare",
+        icon: GitCompare,
+        description: "JSON Diff",
+      },
+      {
+        id: "schema",
+        path: "/schema",
+        label: "Schema",
+        icon: FileJson,
+        description: "JSON to Schema",
+      },
+      {
+        id: "jsonserialize",
+        path: "/jsonserialize",
+        label: "Serialize",
+        icon: Layers,
+        description: "Serialize & Deserialize",
+      },
     ],
   },
   {
-    title: 'Text & Utilities',
+    title: "Text & Utilities",
     items: [
-      { id: 'charcounter', path: '/charcounter', label: 'Char Counter', icon: CaseSensitive, description: 'Words, chars & more' },
-      { id: 'codetostring', path: '/codetostring', label: 'Code → String', icon: Code2, description: 'Escape code to string' },
+      {
+        id: "charcounter",
+        path: "/charcounter",
+        label: "Char Counter",
+        icon: CaseSensitive,
+        description: "Words, chars & more",
+      },
+      {
+        id: "codetostring",
+        path: "/codetostring",
+        label: "Code → String",
+        icon: Code2,
+        description: "Escape code to string",
+      },
     ],
   },
 ];
@@ -62,14 +127,21 @@ function SidebarContent({
   return (
     <div className="flex flex-col h-full bg-sidebar">
       {/* Brand */}
-      <div className="px-4 py-5 border-b flex items-center justify-between shrink-0">
+      <div
+        style={{ padding: "15px 18px" }}
+        className="border-b flex items-center justify-between shrink-0"
+      >
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
             <Braces className="h-4 w-4 text-primary-foreground" />
           </div>
           <div>
-            <p className="text-sm font-bold leading-none text-foreground">Dev Toolkit</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Developer Utilities</p>
+            <p className="text-sm font-bold leading-none text-foreground">
+              Dev Toolkit
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Developer Utilities
+            </p>
           </div>
         </div>
         {/* Close button — mobile only */}
@@ -100,24 +172,34 @@ function SidebarContent({
                   key={item.id}
                   to={item.path}
                   onClick={onMobileClose}
-                  className={({ isActive: linkActive }) => cn(
-                    'relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-150',
-                    linkActive
-                      ? 'text-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60',
-                  )}
+                  className={({ isActive: linkActive }) =>
+                    cn(
+                      "relative w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors duration-150",
+                      linkActive
+                        ? "text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+                    )
+                  }
                 >
                   {isActive && (
                     <motion.div
                       layoutId="activeNav"
                       className="absolute inset-0 rounded-lg bg-accent"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 30,
+                      }}
                     />
                   )}
                   <Icon className="relative z-10 h-4 w-4 shrink-0" />
                   <div className="relative z-10 min-w-0">
-                    <p className="text-sm font-medium leading-none">{item.label}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5 truncate">{item.description}</p>
+                    <p className="text-sm font-medium leading-none">
+                      {item.label}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                      {item.description}
+                    </p>
                   </div>
                 </NavLink>
               );
@@ -129,7 +211,11 @@ function SidebarContent({
   );
 }
 
-export function Sidebar({ activeTool, mobileOpen = false, onMobileClose }: SidebarProps) {
+export function Sidebar({
+  activeTool,
+  mobileOpen = false,
+  onMobileClose,
+}: SidebarProps) {
   return (
     <>
       {/* Desktop sidebar — always visible on md+ */}
@@ -154,10 +240,10 @@ export function Sidebar({ activeTool, mobileOpen = false, onMobileClose }: Sideb
             {/* Drawer panel */}
             <motion.aside
               key="drawer"
-              initial={{ x: '-100%' }}
+              initial={{ x: "-100%" }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', stiffness: 350, damping: 35 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 350, damping: 35 }}
               className="fixed inset-y-0 left-0 z-50 w-64 border-r shadow-xl md:hidden"
             >
               <SidebarContent
