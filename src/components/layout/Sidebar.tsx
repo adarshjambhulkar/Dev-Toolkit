@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { ToolId } from "@/types";
 import { cn } from "@/lib/utils";
+import { AppLogo } from "./AppLogo";
 
 interface NavItem {
   id: ToolId;
@@ -128,22 +129,10 @@ function SidebarContent({
     <div className="flex flex-col h-full bg-sidebar">
       {/* Brand */}
       <div
-        style={{ padding: "15px 18px" }}
+        style={{ padding: "17px 18px" }}
         className="border-b flex items-center justify-between shrink-0"
       >
-        <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
-            <Braces className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div>
-            <p className="text-sm font-bold leading-none text-foreground">
-              Dev Toolkit
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Developer Utilities
-            </p>
-          </div>
-        </div>
+        <AppLogo className="text-sm" />
         {/* Close button — mobile only */}
         {onMobileClose && (
           <button
